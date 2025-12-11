@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行李清單</title>
+    <style>
+        /* 樣式保持完全不變 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #17a2b8; --primary-dark: #138496; --bg: #f5f5f5; --card-bg: white; --text: #333; --border: #ddd; --danger: #dc3545; --success: #28a745; }
+        body.theme-teal { --primary: #88b5b0; --primary-dark: #729d98; }
+        body.theme-blue { --primary: #9ba8c7; --primary-dark: #8392b3; }
+        body.theme-red { --primary: #d5a6a6; --primary-dark: #c18f8f; }
+        body.theme-orange { --primary: #d9b08c; --primary-dark: #c59d77; }
+        body.theme-purple { --primary: #b8a9c9; --primary-dark: #a392b5; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); padding-bottom: 80px; }
+        .header { background: var(--primary); color: white; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; flex: 1; cursor: pointer; }
+        .header-icons { display: flex; gap: 12px; }
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .icon-btn:active { background: rgba(255,255,255,0.3); }
+        .search-bar { background: white; padding: 12px 16px; display: flex; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-direction: column; }
+        .search-row { display: flex; gap: 8px; align-items: stretch; }
+        .search-input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        .category-select { min-width: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white; }
+        .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; cursor: pointer; user-select: none; }
+        .filter-checkbox input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .add-btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .category { margin: 16px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .category-header { padding: 16px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .category-title { font-weight: bold; font-size: 16px; flex: 1; }
+        .category-count { color: #666; font-size: 14px; margin-right: 8px; }
+        .category-actions { display: flex; gap: 8px; }
+        .item { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .item:last-child { border-bottom: none; }
+        .checkbox { width: 24px; height: 24px; border: 2px solid var(--border); border-radius: 6px; cursor: pointer; flex-shrink: 0; position: relative; }
+        .checkbox.checked { background: var(--primary); border-color: var(--primary); }
+        .checkbox.checked::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; }
+        .item-content { flex: 1; display: flex; align-items: center; gap: 12px; }
+        .item-text { flex: 1; font-size: 15px; }
+        .item-text.completed { text-decoration: line-through; color: #999; }
+        .item-category { padding: 4px 12px; background: var(--bg); border-radius: 12px; font-size: 13px; color: #666; }
+        .item-actions { display: flex; gap: 8px; }
+        .btn-icon { width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-edit { background: var(--primary); color: white; }
+        .btn-delete { background: var(--danger); color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; }
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .modal-subtitle { font-size: 14px; color: #666; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        .form-select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .theme-option { padding: 20px; border-radius: 12px; text-align: center; color: white; font-weight: bold; cursor: pointer; position: relative; transition: transform 0.2s; }
+        .theme-option:active { transform: scale(0.95); }
+        .theme-option.selected::after { content: '✓'; position: absolute; bottom: 8px; right: 8px; font-size: 24px; }
+        .theme-teal { background: #88b5b0; }
+        .theme-blue { background: #9ba8c7; }
+        .theme-red { background: #d5a6a6; }
+        .theme-orange { background: #d9b08c; }
+        .theme-purple { background: #b8a9c9; }
+        .trash-container { margin-top: 16px; }
+        .trash-item { padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-restore { padding: 6px 12px; background: var(--success); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .btn-danger { background: var(--danger); color: white; }
+        .trash-count { background: var(--danger); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; position: absolute; top: -4px; right: -4px; }
+        .category-list { margin-top: 16px; }
+        .category-item { padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .category-item-actions { display: flex; gap: 8px; }
+        .btn-move { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #666; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+    </style>
+</head>
+<body class="theme-teal">
+    <div class="header">
+        <h1 id="appTitle" onclick="editTitle()">黃刀鎮極光打包清單</h1>
+        <div class="header-icons">
+            <button class="icon-btn" onclick="openThemeModal()" title="主題">🎨</button>
+            <button class="icon-btn" onclick="openCategoryModal()" title="分類管理">≡</button>
+            <button class="icon-btn" onclick="openTrashModal()" style="position: relative;" title="垃圾桶">
+                🗑️
+                <span class="trash-count" id="trashCount" style="display: none;">0</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="search-bar">
+        <div class="search-row">
+            <input type="text" class="search-input" id="quickAddInput" placeholder="輸入要打包的襪套/攝影物品...">
+            <select class="category-select" id="quickAddCategory"></select>
+            <button class="add-btn" onclick="quickAddItem()">新增項目</button>
+        </div>
+        <label class="filter-checkbox">
+            <input type="checkbox" id="showUnpackedOnly" onchange="render()">
+            僅顯示未打包
+        </label>
+    </div>
+
+    <div id="categoriesContainer"></div>
+
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-title" id="itemModalTitle">新增項目</div>
+            <div class="form-group">
+                <input type="text" class="form-input" id="itemName" placeholder="項目名稱">
+            </div>
+            <div class="form-group">
+                <select class="form-select" id="itemCategory"></select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeItemModal()">關閉</button>
+                <button class="btn btn-primary" onclick="saveItem()">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="themeModal">
+        <div class="modal-content">
+            <div class="modal-title">選擇應用程式主題色</div>
+            <div class="modal-subtitle">這將更改按鈕、邊框和主要視覺元素的顏色。</div>
+            <div class="theme-grid">
+                <div class="theme-option theme-teal" onclick="setTheme('teal')">湖水綠</div>
+                <div class="theme-option theme-blue" onclick="setTheme('blue')">星空藍</div>
+                <div class="theme-option theme-red" onclick="setTheme('red')">極光紅</div>
+                <div class="theme-option theme-orange" onclick="setTheme('orange')">琥珀黃</div>
+                <div class="theme-option theme-purple" onclick="setTheme('purple')">夢幻紫</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeThemeModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-title">管理分類與順序</div>
+            <div class="category-list" id="categoryList"></div>
+            <div class="form-group" style="margin-top: 20px;">
+                <input type="text" class="form-input" id="newCategoryName" placeholder="新增分類名稱">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">關閉</button>
+                <button class="btn btn-primary" onclick="addCategory()">新增</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="trashModal">
+        <div class="modal-content">
+            <div class="modal-title">清單工具箱</div>
+            <div class="trash-container" id="trashContainer"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeTrashModal()">關閉</button>
+                <button class="btn btn-danger" onclick="emptyTrash()">完全重置清單 (危險)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 設定黃刀鎮極光旅行的預設資料
+        const DEFAULT_DATA = {
+            title: '黃刀鎮極光打包清單',
+            theme: 'teal',
+            categories: ['極地禦寒衣物', '攝影與電子設備', '暖暖包與隨身保暖', '重要文件與現金', '盥洗與極致保濕'],
+            items: [
+                // 極地禦寒衣物
+                { id: 1, name: '極地羽絨外套 (Canada Goose/租借等級)', category: '極地禦寒衣物', completed: false },
+                { id: 2, name: '防水防風滑雪褲 (雪地必備)', category: '極地禦寒衣物', completed: false },
+                { id: 3, name: '美麗諾羊毛發熱衣褲 (底層 x3套)', category: '極地禦寒衣物', completed: false },
+                { id: 4, name: '抓絨衣/羊毛衣 (中層保暖)', category: '極地禦寒衣物', completed: false },
+                { id: 5, name: '羊毛襪 (厚底保暖款 x5雙)', category: '極地禦寒衣物', completed: false },
+                { id: 6, name: '防寒雪靴 (Sorel/Kamik -30°C等級)', category: '極地禦寒衣物', completed: false },
+                { id: 7, name: '兩截式手套 (內觸控+外防風)', category: '極地禦寒衣物', completed: false },
+                { id: 8, name: '遮耳毛帽 (保護頭部)', category: '極地禦寒衣物', completed: false },
+                { id: 9, name: '圍脖/防風面罩 (防止臉凍傷)', category: '極地禦寒衣物', completed: false },
+                
+                // 攝影與電子設備
+                { id: 10, name: '相機 + 大光圈廣角鏡', category: '攝影與電子設備', completed: false },
+                { id: 11, name: '穩固腳架 (拍攝極光長曝必備)', category: '攝影與電子設備', completed: false },
+                { id: 12, name: '相機備用電池 x3 (低溫耗電快)', category: '攝影與電子設備', completed: false },
+                { id: 13, name: '快門線 (防止手震)', category: '攝影與電子設備', completed: false },
+                { id: 14, name: '鏡頭除霧發熱帶', category: '攝影與電子設備', completed: false },
+                { id: 15, name: '大容量行動電源', category: '攝影與電子設備', completed: false },
+                { id: 16, name: '美加通用轉接頭 (110V扁插)', category: '攝影與電子設備', completed: false },
+
+                // 暖暖包與隨身保暖
+                { id: 17, name: '貼式暖暖包 (貼身體)', category: '暖暖包與隨身保暖', completed: false },
+                { id: 18, name: '足貼暖暖包 (貼腳底超重要)', category: '暖暖包與隨身保暖', completed: false },
+                { id: 19, name: '手握式暖暖包 (放口袋暖手)', category: '暖暖包與隨身保暖', completed: false },
+                { id: 20, name: '保溫瓶 (裝熱水隨時喝)', category: '暖暖包與隨身保暖', completed: false },
+                { id: 21, name: '墨鏡 (白天雪地反光強)', category: '暖暖包與隨身保暖', completed: false },
+
+                // 重要文件與現金
+                { id: 22, name: '護照 + eTA簽證列印本', category: '重要文件與現金', completed: false },
+                { id: 23, name: '極光團/飯店預訂憑證', category: '重要文件與現金', completed: false },
+                { id: 24, name: '旅遊保險單 (含海外醫療)', category: '重要文件與現金', completed: false },
+                { id: 25, name: '信用卡 + 少量加幣現金', category: '重要文件與現金', completed: false },
+
+                // 盥洗與極致保濕
+                { id: 26, name: '高保濕身體乳/面霜 (極乾燥)', category: '盥洗與極致保濕', completed: false },
+                { id: 27, name: '護唇膏 + 護手霜', category: '盥洗與極致保濕', completed: false },
+                { id: 28, name: '牙刷牙膏 (環保不提供)', category: '盥洗與極致保濕', completed: false },
+                { id: 29, name: '拖鞋 (飯店通常沒有)', category: '盥洗與極致保濕', completed: false }
+            ]
+        };
+
+        let data = {
+            title: DEFAULT_DATA.title,
+            theme: DEFAULT_DATA.theme,
+            categories: [...DEFAULT_DATA.categories],
+            items: [],
+            trash: [],
+            currentEditId: null
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('packingListData');
+            if (saved) {
+                data = JSON.parse(saved);
+                document.getElementById('appTitle').textContent = data.title;
+                document.body.className = `theme-${data.theme}`;
+            } else {
+                // Initialize with default data
+                data.items = [...DEFAULT_DATA.items];
+                // 如果是第一次載入，確保分類也使用預設的
+                if(data.categories.length === 5 && data.categories[0] === '禦寒衣物') {
+                     // 舊的預設值，覆蓋為新的
+                     data.categories = [...DEFAULT_DATA.categories];
+                     data.title = DEFAULT_DATA.title;
+                }
+            }
+            updateQuickAddCategorySelect();
+            render();
+        }
+
+        function saveData() {
+            localStorage.setItem('packingListData', JSON.stringify(data));
+            updateTrashCount();
+        }
+
+        function render() {
+            const container = document.getElementById('categoriesContainer');
+            const showUnpackedOnly = document.getElementById('showUnpackedOnly').checked;
+            
+            container.innerHTML = '';
+            
+            data.categories.forEach(category => {
+                let categoryItems = data.items.filter(item => item.category === category);
+                
+                if (showUnpackedOnly) {
+                    categoryItems = categoryItems.filter(item => !item.completed);
+                }
+                
+                if (categoryItems.length === 0) return;
+                
+                const completed = categoryItems.filter(item => item.completed).length;
+                const total = categoryItems.length;
+                
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-title">${category}</div>
+                        <div class="category-count">(${completed} 項未打包 / ${total} 項總計)</div>
+                    </div>
+                    ${categoryItems.map(item => `
+                        <div class="item">
+                            <div class="checkbox ${item.completed ? 'checked' : ''}" onclick="toggleItem(${item.id})"></div>
+                            <div class="item-content">
+                                <div class="item-text ${item.completed ? 'completed' : ''}">${item.name}</div>
+                                <div class="item-category">${item.category}</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn-icon btn-edit" onclick="editItem(${item.id})">✏️</button>
+                                <button class="btn-icon btn-delete" onclick="deleteItem(${item.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+                
+                container.appendChild(categoryDiv);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = '<div class="empty-state">沒有項目</div>';
+            }
+        }
+
+        function toggleItem(id) {
+            const item = data.items.find(i => i.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                saveData();
+                render();
+            }
+        }
+
+        function quickAddItem() {
+            const name = document.getElementById('quickAddInput').value.trim();
+            const category = document.getElementById('quickAddCategory').value;
+            
+            if (!name) {
+                alert('請輸入項目名稱');
+                return;
+            }
+            
+            const newId = Math.max(0, ...data.items.map(i => i.id)) + 1;
+            data.items.push({
+                id: newId,
+                name: name,
+                category: category,
+                completed: false
+            });
+            
+            document.getElementById('quickAddInput').value = '';
+            saveData();
+            render();
+        }
+
+        function updateQuickAddCategorySelect() {
+            const select = document.getElementById('quickAddCategory');
+            select.innerHTML = data.categories.map(cat => 
+                `<option value="${cat}">${cat}</option>`
+            ).join('');
+        }
+
+        function openAddModal() {
+            data.currentEditId = null;
+            document.getElementById('itemModalTitle').textContent = '新增項目';
+            document.getElementById('itemName').value = '';
+            updateCategorySelect();
+            document.getElementById('itemModal').classList.add('show');
+        }
+
+        function editItem(id) {
+            data.currentEditId = id;
+            const item = data.items.find(i => i.id === id);
+            if (item) {
+                document.getElementById('itemModalTitle').textContent = '編輯項目';
+                document.getElementById('itemName').value = item.name;
+                updateCategorySelect();
+                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemModal').classList.add('show');
+            }
+        }
+
+        function closeItemModal() {
+            document.getElementById('itemModal').classList.remove('show');
+        }
+
+        function saveItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const category = document.getElementById('itemCategory').value;
+            
+            if (!name) {
+                alert('請輸入項目名稱');
+                return;
+            }
+            
+            if (data.currentEditId) {
+                const item = data.items.find(i => i.id === data.currentEditId);
+                if (item) {
+                    item.name = name;
+                    item.category = category;
+                }
+            } else {
+                const newId = Math.max(0, ...data.items.map(i => i.id)) + 1;
+                data.items.push({
+                    id: newId,
+                    name: name,
+                    category: category,
+                    completed: false
+                });
+            }
+            
+            saveData();
+            render();
+            closeItemModal();
+        }
+
+        function deleteItem(id) {
+            const item = data.items.find(i => i.id === id);
+            if (item) {
+                data.trash.push({...item, deletedAt: Date.now()});
+                data.items = data.items.filter(i => i.id !== id);
+                saveData();
+                render();
+            }
+        }
+
+        function updateCategorySelect() {
+            const select = document.getElementById('itemCategory');
+            select.innerHTML = data.categories.map(cat => 
+                `<option value="${cat}">${cat}</option>`
+            ).join('');
+        }
+
+        function openThemeModal() {
+            document.getElementById('themeModal').classList.add('show');
+            updateThemeSelection();
+        }
+
+        function closeThemeModal() {
+            document.getElementById('themeModal').classList.remove('show');
+        }
+
+        function setTheme(theme) {
+            data.theme = theme;
+            document.body.className = `theme-${theme}`;
+            saveData();
+            updateThemeSelection();
+        }
+
+        function updateThemeSelection() {
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`.theme-option.theme-${data.theme}`).classList.add('selected');
+        }
+
+        function openCategoryModal() {
+            document.getElementById('categoryModal').classList.add('show');
+            renderCategoryList();
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+        }
+
+        function renderCategoryList() {
+            const list = document.getElementById('categoryList');
+            list.innerHTML = data.categories.map((cat, index) => `
+                <div class="category-item">
+                    <div>${cat}</div>
+                    <div class="category-item-actions">
+                        ${index > 0 ? `<button class="btn-move" onclick="moveCategoryUp(${index})">↑</button>` : '<span style="width: 32px;"></span>'}
+                        ${index < data.categories.length - 1 ? `<button class="btn-move" onclick="moveCategoryDown(${index})">↓</button>` : '<span style="width: 32px;"></span>'}
+                        <button class="btn-icon btn-delete" style="width: 32px; height: 32px; font-size: 16px;" onclick="deleteCategory(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            if (!name) {
+                alert('請輸入分類名稱');
+                return;
+            }
+            if (data.categories.includes(name)) {
+                alert('分類已存在');
+                return;
+            }
+            data.categories.push(name);
+            document.getElementById('newCategoryName').value = '';
+            saveData();
+            renderCategoryList();
+            updateQuickAddCategorySelect();
+            render();
+        }
+
+        function deleteCategory(index) {
+            const category = data.categories[index];
+            const hasItems = data.items.some(item => item.category === category);
+            
+            if (hasItems) {
+                alert('此分類下還有項目，無法刪除');
+                return;
+            }
+            
+            if (confirm(`確定要刪除「${category}」分類？`)) {
+                data.categories.splice(index, 1);
+                saveData();
+                renderCategoryList();
+                updateQuickAddCategorySelect();
+                render();
+            }
+        }
+
+        function moveCategoryUp(index) {
+            if (index > 0) {
+                [data.categories[index], data.categories[index - 1]] = 
+                [data.categories[index - 1], data.categories[index]];
+                saveData();
+                renderCategoryList();
+                updateQuickAddCategorySelect();
+                render();
+            }
+        }
+
+        function moveCategoryDown(index) {
+            if (index < data.categories.length - 1) {
+                [data.categories[index], data.categories[index + 1]] = 
+                [data.categories[index + 1], data.categories[index]];
+                saveData();
+                renderCategoryList();
+                updateQuickAddCategorySelect();
+                render();
+            }
+        }
+
+        function openTrashModal() {
+            document.getElementById('trashModal').classList.add('show');
+            renderTrash();
+        }
+
+        function closeTrashModal() {
+            document.getElementById('trashModal').classList.remove('show');
+        }
+
+        function renderTrash() {
+            const container = document.getElementById('trashContainer');
+            if (data.trash.length === 0) {
+                container.innerHTML = '<div class="empty-state">垃圾桶是空的</div>';
+                return;
+            }
+            
+            container.innerHTML = data.trash.map((item, index) => `
+                <div class="trash-item">
+                    <div>
+                        <div style="font-weight: bold;">${item.name}</div>
+                        <div style="font-size: 12px; color: #666;">${item.category}</div>
+                    </div>
+                    <button class="btn-restore" onclick="restoreItem(${index})">還原</button>
+                </div>
+            `).join('');
+        }
+
+        function restoreItem(index) {
+            const item = data.trash[index];
+            data.items.push({
+                id: Math.max(0, ...data.items.map(i => i.id)) + 1,
+                name: item.name,
+                category: item.category,
+                completed: item.completed
+            });
+            data.trash.splice(index, 1);
+            saveData();
+            renderTrash();
+            render();
+        }
+
+        function emptyTrash() {
+            if (!confirm('⚠️ 警告：完全重置清單\n\n此操作將會：\n\n1. 取消所有項目的勾選狀態\n2. 刪除所有新增的項目（只保留預設項目）\n3. 還原所有分類至預設狀態\n4. 清空回收站中的所有內容\n5. 還原清單標題和主題顏色至預設值\n\n⚠️ 此操作無法復原！\n\n確定要繼續嗎？')) {
+                return;
+            }
+            
+            // 第二次確認
+            if (!confirm('最後確認：真的要將所有設定還原到初始狀態嗎？')) {
+                return;
+            }
+            
+            // 完全重置到預設狀態
+            data = {
+                title: DEFAULT_DATA.title,
+                theme: DEFAULT_DATA.theme,
+                categories: [...DEFAULT_DATA.categories],
+                items: JSON.parse(JSON.stringify(DEFAULT_DATA.items)), // 深拷貝
+                trash: [],
+                currentEditId: null
+            };
+            
+            // 更新UI
+            document.getElementById('appTitle').textContent = data.title;
+            document.body.className = `theme-${data.theme}`;
+            
+            saveData();
+            closeTrashModal();
+            updateQuickAddCategorySelect();
+            render();
+            alert('✅ 清單已完全重置至預設狀態');
+        }
+
+        function updateTrashCount() {
+            const count = data.trash.length;
+            const badge = document.getElementById('trashCount');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function editTitle() {
+            const newTitle = prompt('編輯標題：', data.title);
+            if (newTitle && newTitle.trim()) {
+                data.title = newTitle.trim();
+                document.getElementById('appTitle').textContent = data.title;
+                saveData();
+            }
+        }
+
+        // 按 Enter 鍵快速新增項目
+        document.getElementById('quickAddInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                quickAddItem();
+            }
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
+
