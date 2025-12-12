@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+<link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>極光打包清單</title>
@@ -220,7 +221,8 @@
                 </div>
             </div>
         </div>
-    </div> <script>
+    </div> 
+<script>
         // 設定黃刀鎮極光旅行的預設資料
         const DEFAULT_DATA = {
             title: '黃刀鎮極光打包清單',
@@ -661,6 +663,10 @@
         });
 
         loadData();
+        if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => console.log("Service Worker registered"));
+}
     </script>
 </body>
 </html>
