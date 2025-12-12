@@ -30,7 +30,7 @@
 
         /* 🌟 核心調整：限制網頁最大寬度 🌟 */
         .app-container {
-            max-width: 600px; /* 限制 App 內容區域的最大寬度 */
+            max-width: 350px; /* 限制 App 內容區域的最大寬度 */
             margin: 0 auto;   /* 居中顯示 */
             background: var(--bg);
             min-height: 100vh;
@@ -38,33 +38,33 @@
         }
 
         .header { background: var(--primary); color: white; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 20px; flex: 1; cursor: pointer; }
+        .header h1 { font-size: 15px; flex: 1; cursor: pointer; }
         .header-icons { display: flex; gap: 12px; }
-        .icon-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .icon-btn { width: 33px; height: 33px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .icon-btn:active { background: rgba(255,255,255,0.3); }
-        .search-bar { background: white; padding: 12px 16px; display: flex; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-direction: column; }
+        .search-bar { background: white; padding: 8px 8px; display: flex; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-direction: column; }
         .search-row { display: flex; gap: 8px; align-items: stretch; }
-        .search-input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; }
-        .category-select { min-width: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: white; }
-        .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #666; cursor: pointer; user-select: none; padding-top: 8px; }
-        .filter-checkbox input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .search-input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+        .category-select { min-width: 100px; padding: 6px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; background: white; }
+        .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; cursor: pointer; user-select: none; padding-top: 8px; }
+        .filter-checkbox input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; }
         .add-btn { padding: 12px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 14px; }
         .category { margin: 16px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .category-header { padding: 16px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .category-title { font-weight: bold; font-size: 18px; flex: 1; }
-        .category-count { color: #666; font-size: 14px; margin-right: 8px; }
+        .category-header { padding: 12px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .category-title { font-weight: bold; font-size: 14px; flex: 1; }
+        .category-count { color: #666; font-size: 12px; margin-right: 8px; }
         .category-actions { display: flex; gap: 8px; }
-        .item { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .item { padding: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .item:last-child { border-bottom: none; }
         .checkbox { width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; flex-shrink: 0; position: relative; }
         .checkbox.checked { background: var(--primary); border-color: var(--primary); }
         .checkbox.checked::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; }
         .item-content { flex: 1; display: flex; align-items: center; gap: 12px; }
-        .item-text { flex: 1; font-size: 16px; }
+        .item-text { flex: 1; font-size: 14px; }
         .item-text.completed { text-decoration: line-through; color: #999; }
-        .item-category { padding: 4px 10px; background: var(--bg); border-radius: 12px; font-size: 13px; color: #666; white-space: nowrap; }
+        .item-category {display: none;}
         .item-actions { display: flex; gap: 8px; }
-        .btn-icon { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-icon { width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .btn-edit { background: var(--primary); color: white; }
         .btn-delete { background: var(--danger); color: white; }
         .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
@@ -98,6 +98,34 @@
         .category-item-actions { display: flex; gap: 8px; }
         .btn-move { background: transparent; border: none; font-size: 24px; cursor: pointer; color: #666; }
         .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+        /* 第一行：輸入框自動伸展 + 分類固定寬 */
+.row-1 {
+    display: flex;
+    gap: 8px;
+}
+
+.row-1 .search-input {
+    flex: 1;
+}
+
+.row-1 .category-select {
+    width: 120px !important;
+}
+
+/* 第二行：左邊 checkbox，右邊按鈕 */
+.row-2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.row-2 .filter-checkbox {
+    margin: 0; 
+}
+
+.row-2 .add-btn {
+    margin-left: auto;
+}
     </style>
 </head>
 <body class="theme-teal">
@@ -114,16 +142,24 @@
         </div>
 
         <div class="search-bar">
-            <div class="search-row">
-                <input type="text" class="search-input" id="quickAddInput" placeholder="輸入要打包的襪套/攝影物品...">
-                <select class="category-select" id="quickAddCategory"></select>
-                <button class="add-btn" onclick="quickAddItem()">新增項目</button>
-            </div>
-            <label class="filter-checkbox">
-                <input type="checkbox" id="showUnpackedOnly" onchange="render()">
-                僅顯示未打包
-            </label>
-        </div>
+
+    <!-- 第一行 -->
+    <div class="search-row row-1">
+        <input type="text" class="search-input" id="quickAddInput" placeholder="輸入要打包的襪套/攝影物品...">
+        <select class="category-select" id="quickAddCategory"></select>
+    </div>
+
+    <!-- 第二行 -->
+    <div class="search-row row-2">
+        <label class="filter-checkbox">
+            <input type="checkbox" id="showUnpackedOnly" onchange="render()">
+            僅顯示未打包
+        </label>
+
+        <button class="add-btn" onclick="quickAddItem()">新增項目</button>
+    </div>
+
+</div>
 
         <div id="categoriesContainer"></div>
 
